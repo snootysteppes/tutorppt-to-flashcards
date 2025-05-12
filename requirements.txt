@@ -4,3 +4,4 @@ python-pptx
 PyMuPDF
 requests
 fitz
+frontend
