@@ -1,4 +1,6 @@
 Flask
 flask-cors
-requests
 python-pptx
+PyMuPDF
+requests
+fitz
