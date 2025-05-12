@@ -11,6 +11,7 @@ import requests
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from pptx import Presentation
+import fitz  # PyMuPDF for PDF text extraction
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -162,11 +163,13 @@ Create {cards_per_chunk} flashcards now:"""
                     
                     if response.status_code == 200:
                         result = response.json()
+                        # Log the full API response for debugging
+                        logger.info(f"Full API response: {json.dumps(result)}")
                         if result.get('choices'):
                             content = result['choices'][0]['message']['content'].strip()
                             chunk_cards = []
                             
-                            # Log the raw API response for debugging
+                            # Log the raw API response content for debugging
                             logger.info(f"API Response content: {content}")
                             
                             for line in content.split('\n'):
@@ -332,15 +335,15 @@ def process_powerpoint():
         logger.error("No file provided in request")
         return jsonify({
             'error': 'No file provided',
-            'message': 'Please upload a PowerPoint file'
+            'message': 'Please upload a PowerPoint or PDF file'
         }), 400
 
     file = request.files['file']
-    if not file.filename.endswith(('.ppt', '.pptx')):
+    if not file.filename.endswith(('.ppt', '.pptx', '.pdf')):
         logger.error(f"Invalid file format: {file.filename}")
         return jsonify({
             'error': 'Invalid file format',
-            'message': 'Please upload a .ppt or .pptx file'
+            'message': 'Please upload a .ppt, .pptx, or .pdf file'
         }), 400
 
     temp_path = os.path.join(TEMP_DIR, f"{uuid.uuid4()}_{file.filename}")
@@ -348,13 +351,29 @@ def process_powerpoint():
     file.save(temp_path)
 
     try:
-        logger.info("Starting PowerPoint text extraction")
-        text_content, slide_count = extract_text_from_pptx(temp_path)
-        if not text_content:
-            logger.error("No text content extracted from PowerPoint")
+        if file.filename.endswith(('.ppt', '.pptx')):
+            logger.info("Starting PowerPoint text extraction")
+            text_content, slide_count = extract_text_from_pptx(temp_path)
+            if not text_content:
+                logger.error("No text content extracted from PowerPoint")
+                return jsonify({
+                    'error': 'Extraction failed',
+                    'message': 'Could not extract text from the PowerPoint file'
+                }), 400
+        elif file.filename.endswith('.pdf'):
+            logger.info("Starting PDF text extraction")
+            text_content, slide_count = extract_text_from_pdf(temp_path)
+            if not text_content:
+                logger.error("No text content extracted from PDF")
+                return jsonify({
+                    'error': 'Extraction failed',
+                    'message': 'Could not extract text from the PDF file'
+                }), 400
+        else:
+            logger.error(f"Unsupported file format: {file.filename}")
             return jsonify({
-                'error': 'Extraction failed',
-                'message': 'Could not extract text from the PowerPoint file'
+                'error': 'Unsupported file format',
+                'message': 'Please upload a supported file type'
             }), 400
 
         logger.info("Starting flashcard generation")
