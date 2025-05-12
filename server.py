@@ -5,6 +5,7 @@ import uuid
 import time
 import logging
 import json
+import os
 from datetime import datetime
 import requests
 from flask import Flask, request, jsonify, send_from_directory
@@ -44,7 +45,7 @@ processing_status = {
 # OpenRouter API configuration
 API_CONFIG = {
     'url': 'https://openrouter.ai/api/v1/chat/completions',
-    'key': apikey,
+    'key': os.getenv('apikey', ''),  # Use environment variable 'apikey'
     'model': 'mistralai/mistral-7b-instruct:free'  # Changed to a more reliable model
 }
 
