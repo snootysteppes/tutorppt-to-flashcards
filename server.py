@@ -44,7 +44,7 @@ processing_status = {
 # OpenRouter API configuration
 API_CONFIG = {
     'url': 'https://openrouter.ai/api/v1/chat/completions',
-    'key': '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',
+    'key': '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',
     'model': 'mistralai/mistral-7b-instruct:free'  # Changed to a more reliable model
 }
 
