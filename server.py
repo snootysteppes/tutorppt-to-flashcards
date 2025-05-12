@@ -213,7 +213,7 @@ Create {cards_per_chunk} flashcards now:"""
                     raise
 
         if not all_flashcards:
-            raise Exception("No valid flashcards were generated. Please try again.")
+            raise Exception("The server is busy, try again in ~15m")
 
         update_status(
             status="Flashcard generation complete",
