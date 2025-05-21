@@ -6,3 +6,10 @@ requests
 fitz
 frontend
 tools
+Flask
+flask-cors
+requests
+python-pptx
+PyMuPDF
+bcrypt
+tiktoken
