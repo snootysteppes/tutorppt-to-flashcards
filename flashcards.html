@@ -132,35 +132,35 @@
             }
 
             try {
-                const response = await fetch(`/static/assets/flashcards_${flashcardId}.txt`);
-                if (!response.ok) throw new Error('Failed to load flashcards');
-                
-                const text = await response.text();
-                const flashcards = text.split('\n').filter(line => line.trim());
-                let currentIndex = 0;
+            const response = await fetch(`/flashcards/${flashcardId}`);
+            if (!response.ok) throw new Error('Failed to load flashcards');
+            
+            const data = await response.json();
+            const flashcards = data.flashcards || [];
+            let currentIndex = 0;
 
-                const elements = {
-                    stats: document.getElementById('stats'),
-                    currentQuestion: document.getElementById('current-question'),
-                    currentAnswer: document.getElementById('current-answer'),
-                    prevBtn: document.getElementById('prev-card'),
-                    nextBtn: document.getElementById('next-card'),
-                    counter: document.getElementById('card-counter'),
-                    downloadBtn: document.getElementById('download-btn'),
-                    flashcard: document.querySelector('.flashcard')
-                };
+            const elements = {
+                stats: document.getElementById('stats'),
+                currentQuestion: document.getElementById('current-question'),
+                currentAnswer: document.getElementById('current-answer'),
+                prevBtn: document.getElementById('prev-card'),
+                nextBtn: document.getElementById('next-card'),
+                counter: document.getElementById('card-counter'),
+                downloadBtn: document.getElementById('download-btn'),
+                flashcard: document.querySelector('.flashcard')
+            };
 
-                elements.stats.textContent = `${flashcards.length} flashcards available`;
+            elements.stats.textContent = `${flashcards.length} flashcards available`;
 
-                function updateCard() {
-                    const [question, answer] = flashcards[currentIndex].split(':');
-                    elements.currentQuestion.textContent = question;
-                    elements.currentAnswer.textContent = answer;
-                    elements.counter.textContent = `Card ${currentIndex + 1} of ${flashcards.length}`;
-                    elements.prevBtn.disabled = currentIndex === 0;
-                    elements.nextBtn.disabled = currentIndex === flashcards.length - 1;
-                    elements.flashcard.classList.remove('flipped');
-                }
+            function updateCard() {
+                const { question, answer } = flashcards[currentIndex];
+                elements.currentQuestion.textContent = question;
+                elements.currentAnswer.textContent = answer;
+                elements.counter.textContent = `Card ${currentIndex + 1} of ${flashcards.length}`;
+                elements.prevBtn.disabled = currentIndex === 0;
+                elements.nextBtn.disabled = currentIndex === flashcards.length - 1;
+                elements.flashcard.classList.remove('flipped');
+            }
 
                 elements.flashcard.addEventListener('click', () => {
                     elements.flashcard.classList.toggle('flipped');
