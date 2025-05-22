@@ -196,6 +196,10 @@ def logout():
 @login_required
 def autox():
     user = get_user_by_id(session['user_id'])
+    if user is None:
+        # User not found, clear session and redirect to login
+        session.clear()
+        return redirect(url_for('login'))
     reset_tokens_if_needed(user)
     # Render autox.html template with variables
     return render_template('autox.html', username=user['username'], tokens=user['tokens'])
