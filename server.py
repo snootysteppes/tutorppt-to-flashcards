@@ -55,6 +55,16 @@ def init_db():
             is_admin INTEGER DEFAULT 0
         )
     ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS flashcards (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            flashcard_id TEXT NOT NULL,
+            filename TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    ''')
     conn.commit()
     conn.close()
 
@@ -662,17 +672,34 @@ def extract_text_from_pdf(file_path):
         update_status(error=str(e))
         return None, 0
 
-def save_flashcards_txt(flashcards, filename):
-    """Save flashcards to a text file"""
+def save_flashcards_txt(flashcards, filename, user_id=None):
+    """Save flashcards to a text file and associate with user if user_id provided"""
     try:
         update_status(status="Saving flashcards")
         flashcard_id = str(uuid.uuid4())
         output_path = os.path.join(ASSETS_DIR, f'flashcards_{flashcard_id}.txt')
         
-        with open(output_path, 'w') as f:
+        with open(output_path, 'w', encoding='utf-8') as f:
             f.write('\n'.join(flashcards))
             
         logger.info(f"Saved {len(flashcards)} flashcards to {output_path}")
+        
+        if user_id:
+            conn = get_db_connection()
+            # Check if flashcard_id already exists for user to avoid duplicates
+            existing = conn.execute(
+                'SELECT id FROM flashcards WHERE user_id = ? AND flashcard_id = ?',
+                (user_id, flashcard_id)
+            ).fetchone()
+            if not existing:
+                conn.execute(
+                    'INSERT INTO flashcards (user_id, flashcard_id, filename) VALUES (?, ?, ?)',
+                    (user_id, flashcard_id, filename)
+                )
+                conn.commit()
+                logger.info(f"Associated flashcards {flashcard_id} with user {user_id}")
+            conn.close()
+        
         return flashcard_id
         
     except Exception as e:
@@ -694,6 +721,22 @@ def flashcards():
 def get_status():
     """Get the current processing status"""
     return jsonify(processing_status)
+
+@app.route('/profile')
+@login_required
+def profile():
+    """User profile page showing saved flashcards"""
+    user = get_user_by_id(session['user_id'])
+    if user is None:
+        session.clear()
+        return redirect(url_for('login'))
+    conn = get_db_connection()
+    flashcards = conn.execute(
+        'SELECT flashcard_id, filename, created_at FROM flashcards WHERE user_id = ? ORDER BY created_at DESC',
+        (user['id'],)
+    ).fetchall()
+    conn.close()
+    return render_template('profile.html', flashcards=flashcards)
 
 @app.route('/flashcards/<flashcard_id>', methods=['GET'])
 def get_flashcards(flashcard_id):
