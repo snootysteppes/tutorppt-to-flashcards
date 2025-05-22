@@ -118,6 +118,8 @@ API_CONFIG = {
 
 def reset_tokens_if_needed(user):
     """Reset tokens to 5 if a week has passed since last reset"""
+    if user is None:
+        return
     conn = get_db_connection()
     cursor = conn.cursor()
     last_reset = user['last_token_reset']
