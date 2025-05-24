@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OwnerX Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-6">
+    <div class="max-w-5xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <div class="flex items-center mb-6">
+            <img src="/static/images/logo.png" alt="Logo" class="h-10 w-auto mr-4">
+            <h1 class="text-3xl font-bold">Admin Dashboard</h1>
+        </div>
+
+        <section class="mb-8">
+            <h2 class="text-xl font-semibold mb-4">Add Tokens to Users</h2>
+            <form method="POST" action="/admin/add_tokens" class="space-y-4">
+                <div>
+                    <label for="user_id" class="block font-medium text-gray-700">Select User</label>
+                    <select name="user_id" id="user_id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        {% for user in users %}
+                            <option value="{{ user.id }}">{{ user.username }} (Tokens: {{ user.tokens }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="tokens" class="block font-medium text-gray-700">Tokens to Add</label>
+                    <input type="number" name="tokens" id="tokens" min="1" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+                </div>
+                <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition">Add Tokens</button>
+            </form>
+        </section>
+
+        <section>
+            <h2 class="text-xl font-semibold mb-4">Create New Admin User</h2>
+            <form method="POST" action="/admin/create_admin" class="space-y-4">
+                <div>
+                    <label for="username" class="block font-medium text-gray-700">Username</label>
+                    <input type="text" name="username" id="username" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+                </div>
+                <div>
+                    <label for="password" class="block font-medium text-gray-700">Password</label>
+                    <input type="password" name="password" id="password" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+                </div>
+                <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition">Create Admin</button>
+            </form>
+        </section>
+
+        <p class="mt-6 text-sm text-gray-600">Logged in as OwnerX. <a href="/logout" class="text-indigo-600 hover:underline">Logout</a></p>
+    </div>
+</body>
+</html>

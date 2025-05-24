@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TutorX - Convert PowerPoint to Flashcards</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .hero-pattern {
+            background-color: #ffffff;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23667eea' fill-opacity='0.05'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3Cpath d='M6 5V0H5v5H0v1h5v94h1V6h94V5H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .drop-zone {
+            border: 2px dashed #cbd5e1;
+            transition: all 0.3s ease;
+            background-image: url('https://images.pexels.com/photos/4050315/pexels-photo-4050315.jpeg');
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .drop-zone::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.92);
+            transition: background-color 0.3s ease;
+            z-index: 1;
+        }
+        .drop-zone:hover::before {
+            background: rgba(255, 255, 255, 0.95);
+        }
+        .drop-zone.drag-over::before {
+            background: rgba(99, 102, 241, 0.1);
+        }
+        .drop-zone > * {
+            position: relative;
+            z-index: 2;
+        }
+        .drop-zone.drag-over {
+            border-color: #6366f1;
+            transform: scale(1.01);
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .processing {
+            animation: pulse 2s infinite;
+        }
+        .progress-detail {
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .shimmer {
+            background: linear-gradient(
+                90deg,
+                rgba(255,255,255,0) 0%,
+                rgba(255,255,255,0.8) 50%,
+                rgba(255,255,255,0) 100%
+            );
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .flashcard {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            position: relative;
+            height: 300px;
+        }
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+        .flashcard-front,
+        .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .flashcard-back {
+            transform: rotateY(180deg);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .progress-ring {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+    </style>
+</head>
+<body class="hero-pattern min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white/80 backdrop-blur-xl border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <a href="/" class="flex items-center">
+                    <img src="/static/images/logo.png" alt="Logo" class="h-8 w-auto">
+                </a>
+                <div class="flex items-center space-x-6">
+                    <span class="text-gray-600">Hello, {{ username }}</span>
+                    <span class="text-indigo-600 font-semibold">Tokens: {{ tokens }}</span>
+                    <a href="/logout" class="text-gray-600 hover:text-indigo-600 transition-colors flex items-center">
+                        <i class="fas fa-sign-out-alt mr-2"></i>
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto px-4 py-8">
+        <!-- Upload Section -->
+        <div id="upload-section" class="bg-white rounded-2xl shadow-xl p-8">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 text-transparent bg-clip-text mb-4">
+                    Convert PowerPoint to Flashcards
+                </h1>
+                <p class="text-gray-600">
+                    Upload your PowerPoint presentation and let our AI create effective flashcards
+                </p>
+            </div>
+
+            <div id="drop-zone" class="drop-zone rounded-xl p-12 text-center cursor-pointer mb-6">
+                <input type="file" id="file-input" accept=".ppt,.pptx,.pdf" class="hidden" />
+                <i class="fas fa-cloud-upload-alt text-4xl text-indigo-600 mb-4"></i>
+                <div class="text-lg font-semibold mb-2">Drag & Drop your PowerPoint or PDF file here</div>
+                <div class="text-sm text-gray-600 mb-4">or click to browse</div>
+                <button class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                    Choose File
+                </button>
+            </div>
+
+            <div class="text-sm text-gray-600 flex items-center justify-center">
+                <i class="fas fa-info-circle mr-2"></i>
+                Supported formats: .ppt, .pptx, .pdf
+            </div>
+        </div>
+        <div class="mt-6">
+            <label for="special-instructions" class="block text-sm font-medium text-gray-700">Special Instructions</label>
+            <textarea id="special-instructions" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Add specific instructions for the AI, e.g. 'Include examples in flashcards'"></textarea>
+        </div>
+
+        <!-- Processing Section -->
+        <div id="processing-section" class="hidden bg-white rounded-2xl shadow-xl p-8">
+            <div class="text-center">
+                <i class="fas fa-cogs text-6xl text-indigo-600 mb-4 processing"></i>
+                <div class="text-xl font-semibold mb-8">Processing your PowerPoint</div>
+                
+                <div class="max-w-md mx-auto space-y-6">
+                    <!-- Progress Ring -->
+                    <div class="relative w-32 h-32 mx-auto mb-4">
+                        <svg class="w-full h-full" viewBox="0 0 36 36">
+                            <path d="M18 2.0845
+                                a 15.9155 15.9155 0 0 1 0 31.831
+                                a 15.9155 15.9155 0 0 1 0 -31.831"
+                                fill="none"
+                                stroke="#eee"
+                                stroke-width="2"
+                            />
+                            <path id="progress-ring"
+                                class="progress-ring"
+                                d="M18 2.0845
+                                a 15.9155 15.9155 0 0 1 0 31.831
+                                a 15.9155 15.9155 0 0 1 0 -31.831"
+                                fill="none"
+                                stroke="#6366f1"
+                                stroke-width="2"
+                                stroke-dasharray="100, 100"
+                            />
+                        </svg>
+                        <div class="absolute inset-0 flex items-center justify-center text-lg font-semibold text-indigo-600">
+                            <span id="progress-percentage">0%</span>
+                        </div>
+                    </div>
+
+                    <!-- Status Details -->
+                    <div class="space-y-4">
+                        <div class="progress-detail">
+                            <div class="flex justify-between text-sm mb-1">
+                                <span>Processing Slides</span>
+                                <span id="slide-count">0/0</span>
+                            </div>
+                            <div class="w-full bg-gray-100 rounded-full h-2">
+                                <div id="slide-progress" class="bg-indigo-600 rounded-full h-2 shimmer" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="progress-detail">
+                            <div class="flex justify-between text-sm mb-1">
+                                <span>Flashcards Generated</span>
+                                <span id="flashcard-count">0</span>
+                            </div>
+                            <div class="bg-indigo-50 rounded-lg p-3">
+                                <div id="current-status" class="text-indigo-600 text-sm">Initializing...</div>
+                            </div>
+                        </div>
+                        
+                        <div class="progress-detail text-sm text-gray-600">
+                            <i class="fas fa-clock mr-1"></i>
+                            <span id="time-estimate">Estimating time remaining...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results-section" class="hidden space-y-8">
+            <!-- Success Header -->
+            <div class="bg-white rounded-2xl shadow-xl p-8 text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-check text-3xl text-green-500"></i>
+                </div>
+                <h2 class="text-2xl font-bold mb-2">Conversion Complete!</h2>
+                <p id="stats" class="text-gray-600">Generated 0 flashcards from your presentation</p>
+            </div>
+
+            <!-- Flashcard Viewer -->
+            <div class="bg-white rounded-2xl shadow-xl p-8">
+                <div class="max-w-2xl mx-auto">
+                    <div class="flashcard cursor-pointer mb-6">
+                        <div class="flashcard-front">
+                            <div class="text-center">
+                                <div id="current-question" class="text-xl font-semibold mb-4"></div>
+                                <div class="text-sm text-gray-500">Click to reveal answer</div>
+                            </div>
+                        </div>
+                        <div class="flashcard-back">
+                            <div class="text-center">
+                                <div id="current-answer" class="text-xl font-semibold mb-4"></div>
+                                <div class="text-sm text-gray-300">Click to see question</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Controls -->
+                    <div class="flex justify-between items-center">
+                        <button id="prev-card" class="bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50">
+                            <i class="fas fa-chevron-left mr-2"></i>Previous
+                        </button>
+                        <span id="card-counter" class="text-sm text-gray-600">Card 1 of 10</span>
+                        <button id="next-card" class="bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50">
+                            Next<i class="fas fa-chevron-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-center space-x-4">
+                <button id="download-btn" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-all duration-300 flex items-center">
+                    <i class="fas fa-download mr-2"></i>
+                    Download Flashcards
+                </button>
+                <button id="convert-another-btn" class="border border-indigo-600 text-indigo-600 px-6 py-3 rounded-lg hover:bg-indigo-50 transition-all duration-300">
+                    Convert Another File
+                </button>
+            </div>
+        </div>
+
+        <!-- Error Section -->
+        <div id="error-section" class="hidden bg-white rounded-2xl shadow-xl p-8 text-center">
+            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-exclamation-circle text-3xl text-red-500"></i>
+            </div>
+            <h2 class="text-2xl font-bold mb-2">Oops! Something went wrong</h2>
+            <p id="error-message" class="text-gray-600 mb-6">
+                Unable to process the PowerPoint file.
+            </p>
+            <button id="try-again-btn" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-all duration-300">
+                Try Again
+            </button>
+        </div>
+    </main>
+
+    <script src="/static/js/autox.js"></script>
+</body>
+</html>
